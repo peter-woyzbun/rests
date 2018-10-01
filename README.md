@@ -32,6 +32,8 @@ is generated.
 
 ## Basic Usage
 
+### Setup
+
 Install `rests` via pip:
 
 ```
@@ -39,6 +41,8 @@ pip install https://github.com/peter-woyzbun/rests.git
 ```
 
 Then add `rests` to `INSTALLED_APPS` in `settings.py`.
+
+### Interface Definition
 
 In your `django` app, create a file, `interface.py`, with the following
 structure:
@@ -63,6 +67,9 @@ from .interface import Interface
 urlpatterns = Interface.urlpatterns()
 
 ```
+Note: `Interface.urlpatterns()` returns a list of Django URL patterns,
+so you can use it in `include(...)`.
+
 
 In `settings.py`, add the following, replacing the appropriate values:
 
@@ -73,11 +80,19 @@ In `settings.py`, add the following, replacing the appropriate values:
 
 RESTS = {
     'TRANSPILE_DEST': <path to transpile to>,
-    'BASE_URL': '<base url of your interface>',
+    'BASE_URL': '<base url of your interface, e.g: "http://localhost:5000/">',
     'POST_TRANSPILE_COMMAND': None,
     'INTERFACE_SRC': '<module.path.to.your.Interface>',
     'MODELS_FILENAME': 'models.ts'
 }
 
 
+```
+
+### Transpile
+
+Finally, to generate the TypeScript code, use
+
+```
+python manage.py transpile
 ```
