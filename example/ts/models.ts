@@ -6,7 +6,7 @@ import {ServerClient, ResponseHandlers} from './server_client'
 //
 // -------------------------
 
-const serverClient = new ServerClient('http://localhost:5000/interface/');
+const serverClient = new ServerClient('http://localhost:5000/');
 
 // -------------------------
 // Question QuerySet
@@ -14,69 +14,69 @@ const serverClient = new ServerClient('http://localhost:5000/interface/');
 // -------------------------
 
 export interface QuestionLookups {
-    choice__id?: number;
-    choice__id__exact?: number;
-    choice__id__iexact?: number;
-    choice__id__gt?: number;
-    choice__id__gte?: number;
-    choice__id__lt?: number;
-    choice__id__lte?: number;
-    choice__id__in?: number[];
-    choice__id__contains?: number;
-    choice__id__icontains?: number;
-    choice__id__startswith?: number;
-    choice__id__istartswith?: number;
-    choice__id__endswith?: number;
-    choice__id__iendswith?: number;
-    choice__id__range?: [number, number];
-    choice__id__isnull?: number;
-    choice__id__regex?: number;
-    choice__id__iregex?: number;
-    choice__question?: Question;
-    choice__question__in?: Question[];
-    choice__question__exact?: Question;
-    choice__question__lt?: Question;
-    choice__question__gt?: Question;
-    choice__question__gte?: Question;
-    choice__question__lte?: Question;
-    choice__question__isnull?: Question;
-    choice__choice_text?: string;
-    choice__choice_text__exact?: string;
-    choice__choice_text__iexact?: string;
-    choice__choice_text__gt?: string;
-    choice__choice_text__gte?: string;
-    choice__choice_text__lt?: string;
-    choice__choice_text__lte?: string;
-    choice__choice_text__in?: string[];
-    choice__choice_text__contains?: string;
-    choice__choice_text__icontains?: string;
-    choice__choice_text__startswith?: string;
-    choice__choice_text__istartswith?: string;
-    choice__choice_text__endswith?: string;
-    choice__choice_text__iendswith?: string;
-    choice__choice_text__range?: [string, string];
-    choice__choice_text__isnull?: string;
-    choice__choice_text__regex?: string;
-    choice__choice_text__iregex?: string;
-    choice__votes?: number;
-    choice__votes__exact?: number;
-    choice__votes__iexact?: number;
-    choice__votes__gt?: number;
-    choice__votes__gte?: number;
-    choice__votes__lt?: number;
-    choice__votes__lte?: number;
-    choice__votes__in?: number[];
-    choice__votes__contains?: number;
-    choice__votes__icontains?: number;
-    choice__votes__startswith?: number;
-    choice__votes__istartswith?: number;
-    choice__votes__endswith?: number;
-    choice__votes__iendswith?: number;
-    choice__votes__range?: [number, number];
-    choice__votes__isnull?: number;
-    choice__votes__regex?: number;
-    choice__votes__iregex?: number;
-    choice__votes__contained_by?: number;
+    choices__id?: number;
+    choices__id__exact?: number;
+    choices__id__iexact?: number;
+    choices__id__gt?: number;
+    choices__id__gte?: number;
+    choices__id__lt?: number;
+    choices__id__lte?: number;
+    choices__id__in?: number[];
+    choices__id__contains?: number;
+    choices__id__icontains?: number;
+    choices__id__startswith?: number;
+    choices__id__istartswith?: number;
+    choices__id__endswith?: number;
+    choices__id__iendswith?: number;
+    choices__id__range?: [number, number];
+    choices__id__isnull?: number;
+    choices__id__regex?: number;
+    choices__id__iregex?: number;
+    choices__question?: Question;
+    choices__question__in?: Question[];
+    choices__question__exact?: Question;
+    choices__question__lt?: Question;
+    choices__question__gt?: Question;
+    choices__question__gte?: Question;
+    choices__question__lte?: Question;
+    choices__question__isnull?: Question;
+    choices__choice_text?: string;
+    choices__choice_text__exact?: string;
+    choices__choice_text__iexact?: string;
+    choices__choice_text__gt?: string;
+    choices__choice_text__gte?: string;
+    choices__choice_text__lt?: string;
+    choices__choice_text__lte?: string;
+    choices__choice_text__in?: string[];
+    choices__choice_text__contains?: string;
+    choices__choice_text__icontains?: string;
+    choices__choice_text__startswith?: string;
+    choices__choice_text__istartswith?: string;
+    choices__choice_text__endswith?: string;
+    choices__choice_text__iendswith?: string;
+    choices__choice_text__range?: [string, string];
+    choices__choice_text__isnull?: string;
+    choices__choice_text__regex?: string;
+    choices__choice_text__iregex?: string;
+    choices__votes?: number;
+    choices__votes__exact?: number;
+    choices__votes__iexact?: number;
+    choices__votes__gt?: number;
+    choices__votes__gte?: number;
+    choices__votes__lt?: number;
+    choices__votes__lte?: number;
+    choices__votes__in?: number[];
+    choices__votes__contains?: number;
+    choices__votes__icontains?: number;
+    choices__votes__startswith?: number;
+    choices__votes__istartswith?: number;
+    choices__votes__endswith?: number;
+    choices__votes__iendswith?: number;
+    choices__votes__range?: [number, number];
+    choices__votes__isnull?: number;
+    choices__votes__regex?: number;
+    choices__votes__iregex?: number;
+    choices__votes__contained_by?: number;
     id?: number;
     id__exact?: number;
     id__iexact?: number;
@@ -170,7 +170,6 @@ export class QuestionQuerySet {
     }
 
     public exclude(lookups: QuestionLookups): QuestionQuerySet {
-
         let updatedLookups = this.excludedLookups;
         Object.keys(lookups).map((lookupKey) => {
             const lookupValue = lookups[lookupKey];
@@ -180,7 +179,6 @@ export class QuestionQuerySet {
         })
         this.excludedLookups = updatedLookups;
         return this;
-
     }
 
     public static exclude(lookups: QuestionLookups): QuestionQuerySet {
@@ -190,7 +188,6 @@ export class QuestionQuerySet {
     }
 
     public filter(lookups: QuestionLookups): QuestionQuerySet {
-
         let updatedLookups = this.lookups;
         Object.keys(lookups).map((lookupKey) => {
             const lookupValue = lookups[lookupKey];
@@ -204,19 +201,15 @@ export class QuestionQuerySet {
     }
 
     public static filter(lookups: QuestionLookups): QuestionQuerySet {
-
-        return new QuestionQuerySet({}, lookups)
-
+        return new QuestionQuerySet(lookups, {})
     }
 
     public static async get(id: number, responseHandlers: ResponseHandlers = {}) {
-
         let responseData = await serverClient.get(`/question/${id}/get/`, responseHandlers)
         if (responseData) {
             return new Question(responseData)
         }
         return undefined
-
     }
 
     public or(queryset: QuestionQuerySet): QuestionQuerySet {
@@ -227,7 +220,6 @@ export class QuestionQuerySet {
     }
 
     public async pageValues(pageNum: number = 1, pageSize: number = 25, responseHandlers: ResponseHandlers = {}, ...fields: QuestionFieldName[]): Promise<{ num_results: number, num_pages: number, data: object[] }> {
-
         const urlQuery = "query=" + JSON.stringify(this.serialize()) + "&fields=" + JSON.stringify(fields) + "&page=" + pageNum + "&pagesize=" + pageSize;
         let responseData = await serverClient.get(`/question/`, responseHandlers, urlQuery)
         return responseData;
@@ -259,7 +251,6 @@ export class QuestionQuerySet {
         return responseData;
 
     }
-
 
 }
 
@@ -342,7 +333,7 @@ export class Question {
     }
 
 
-    public choice(): ChoiceQuerySet {
+    public choices(): ChoiceQuerySet {
 
         return new ChoiceQuerySet({...{question__id: this.pk()}})
 
@@ -552,7 +543,7 @@ export class ChoiceQuerySet {
 
     public static filter(lookups: ChoiceLookups): ChoiceQuerySet {
 
-        return new ChoiceQuerySet({}, lookups)
+        return new ChoiceQuerySet(lookups, {})
 
     }
 
