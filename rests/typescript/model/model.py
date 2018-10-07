@@ -38,9 +38,7 @@ class Model(object):
         static objects = {{ model.queryset_cls_name }};
         static serverClient = serverClient;
 
-        {% for type_dec in model.field_cls_type_declarations %}
-        {{ type_dec }};
-        {% endfor %}
+        {% for type_dec in model.field_cls_type_declarations %}{{ type_dec }};\n{% endfor %}
 
         constructor({ {{ model.field_names|join(',') }} }: {{ model.interface_type_name }}){
         super({ {{ model.field_names|join(',') }} })

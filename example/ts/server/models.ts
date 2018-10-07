@@ -192,11 +192,8 @@ export class Question extends Model {
     static objects = QuestionQueryset;
     static serverClient = serverClient;
 
-
     id: number;
-
     question_text: string;
-
     pub_date: Date;
 
 
@@ -414,15 +411,10 @@ export class Choice extends Model {
     static objects = ChoiceQueryset;
     static serverClient = serverClient;
 
-
     id: number;
-
     @foreignKeyField(Question) question: Question;
-
     question_id: Question;
-
     choice_text: string;
-
     votes: number;
 
 

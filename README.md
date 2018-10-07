@@ -11,16 +11,20 @@ similar to their Django equivalents.
 - [Features](#features)
 - [Usage Example](#usage-example)
 - [Full Example](#full-example)
+- [Requirements](#requirements)
 - [Basic Usage](#basic-usage)
 
 
 ## Features
 
 * Create/update/delete/filter/exclude Django models via TypeScript.
+* The URLs/views for the functionality of the above are auto-generated.
 * All queryset "lookup" keys are generated, allowing for type hints in
 TypeScript akin to what you would expect in an IDE with Django support.
 * Filter relations.
-* Automatic retrieval of foreign key relations (on `get`).
+* Automatic retrieval of foreign key relations (i.e on `get`).
+* The generated TypeScript code is self-contained: there is no package to
+innstall.
 
 ## Usage Example
 
@@ -60,16 +64,23 @@ const choices = await question.choices({votes__gt: 3}).retrieve()
 ```
 
 
-the TypeScript file [models.ts](https://github.com/peter-woyzbun/rests/blob/master/example/ts/models.ts)
-is generated. See [here](https://github.com/peter-woyzbun/rests/tree/master/example)
-for the full example.
-
-
 ## Full Example
 
 A full example can be found in the `example` directory of this project.
 The Django project is found [here](https://github.com/peter-woyzbun/rests/tree/master/example/example) and the
-corresponding (generated) TypeScript code is found [here](https://github.com/peter-woyzbun/rests/tree/master/example/example).
+corresponding (generated) TypeScript code is found [here](https://github.com/peter-woyzbun/rests/tree/master/example/ts/server).
+
+## Requirements
+
+### Python
+
+`rests` requires `django` version `2.0` or greater, and the Django REST
+framework.
+
+### TypeScript
+
+The generated TypeScript requires `experimentalDecorators` set to `true`
+in `tsconfig.json`.
 
 ## Basic Usage
 
