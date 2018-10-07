@@ -1,4 +1,4 @@
 import {Question} from "./server/models";
 
 
-Question.objects.filter({})
+const results = Question.objects.filter({question_text__contains})

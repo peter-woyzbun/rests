@@ -6,6 +6,8 @@
 Django URLs/Views. The TypeScript models and querysets are functionally
 similar to their Django equivalents.
 
+[alt text](/docs/filtering.gif "Logo Title Text 1")
+
 ## Table of Contents
 
 - [Features](#features)
@@ -80,7 +82,7 @@ framework.
 ### TypeScript
 
 The generated TypeScript requires `experimentalDecorators` set to `true`
-in `tsconfig.json`.
+in `tsconfig.json`. No packages are required.
 
 ## Basic Usage
 
@@ -125,8 +127,8 @@ class Interface(interface.Interface):
 ```
 
 Each class property of the `Interface` class should be an `interface.Type`
-instance with a serializer whose model you want exposed in your TypeScript
-code.
+instance with a Django Rest Framework serializer whose model you want
+exposed in your TypeScript code.
 
 Queryset lookups and relations will only be generated for/between models
 contained in your interface definition.
