@@ -6,7 +6,7 @@
 Django URLs/Views. The TypeScript models and querysets are functionally
 similar to their Django equivalents.
 
-[alt text](/docs/filtering.gif "Logo Title Text 1")
+[alt text](https://github.com/peter-woyzbun/rests/blob/master/docs/filtering.gif "Logo Title Text 1")
 
 ## Table of Contents
 
