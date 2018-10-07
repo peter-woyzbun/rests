@@ -6,11 +6,6 @@ from jinja2 import Template
 
 from rests.core.utils.model_inspector import ModelInspector
 from rests.typescript.queryset.lookups import QuerysetLookups
-from rests.typescript.type_transpiler import TypeTranspiler
-from rests.typescript import code_generators as ts
-from rests.core.utils.dir_classes import find_classes_in_dir
-from rests.typescript.queryset import methods
-from rests.typescript.queryset.method import QuerysetMethod
 
 
 # =================================
@@ -31,10 +26,36 @@ class Queryset(object):
     // {{ queryset.model_name }} QuerySet
     //
     // -------------------------
+    
+    interface {{ queryset.lookups_type_name }} {
+    {% for type_dec in queryset.lookup_declarations %}{{ type_dec }},\n{% endfor %}
+    }
 
-    {{ queryset.lookups_type_interface }}
+    export class {{ queryset.name }} extends Queryset{
+    
+        static Model: typeof {{ queryset.model_name }};
+        static serverClient = serverClient;
+    
+        protected lookups: {{ queryset.lookups_type_name }};
+        protected excludedLookups: {{ queryset.lookups_type_name }};
+        protected _or: {{ queryset.name }}[];
+    
+        constructor(lookups: {{ queryset.lookups_type_name }} = {}, excludedLookups: {{ queryset.lookups_type_name }} = {}){
+            super(lookups, excludedLookups)
+        }
+        
+        public static filter(lookups: {{ queryset.lookups_type_name }}): {{ queryset.name }} {
+        return new {{ queryset.name }}(lookups)       
+    }
+    
+    public static async get(primaryKey: string | number, responseHandlers: ResponseHandlers={} ): Promise< {{ queryset.model_name }} | undefined>{
+        let responseData = await this.serverClient.get(`${this.Model.BASE_URL}/${primaryKey}/get/`, responseHandlers);
 
-    {{ queryset.klass }}
+        if (responseData){return new this.Model(responseData)}
+        return undefined
+    }
+    
+    }
 
     """
 
@@ -45,75 +66,23 @@ class Queryset(object):
         self.model_inspector = ModelInspector(model=model)
         self.queryset_lookups = QuerysetLookups(model=model, model_pool=model_pool)
 
-    def methods(self):
-        methods_ = list()
-        for MethodCls in find_classes_in_dir(METHODS_DIR, methods.__package__, QuerysetMethod).values():
-            methods_.append(MethodCls(queryset=self).generator())
-        return methods_
-
     @property
-    def pk_field_name(self):
-        return self.model_inspector.pk_field_name
-
-    @property
-    def pk_field_type(self):
-        return TypeTranspiler.transpile(self.model_inspector.pk_field)
+    def name(self):
+        return self.model_name + "Queryset"
 
     @property
     def model_name(self):
         return self.model_inspector.model_name
 
     @property
-    def class_name(self):
-        return self.model_inspector.model_name + 'QuerySet'
-
-    @property
-    def lookups_type_interface(self):
-        val = ts.export + ts.TypeInterface(name=self.lookups_type_name, type_declarations=self.queryset_lookups.type_declarations())
-        return str(val)
-
-    @property
     def lookups_type_name(self):
         return self.model_inspector.model_name + "Lookups"
 
     @property
-    def lookups_type_dec(self):
-        return ts.TypeDeclaration(var_name='lookups', type_=self.lookups_type_name)
-
-    @property
-    def get_url(self):
-        return "`/{type_url}/${pk_field}/get/`".format(type_url=self.type_url,
-                                                       pk_field="{" + self.model_inspector.pk_field_name + "}")
-
-    @property
-    def create_url(self):
-        return "`/{type_url}/create/`".format(type_url=self.type_url,
-                                              pk_field="{" + self.model_inspector.pk_field_name + "}")
-
-    @property
-    def list_url(self):
-        return "`/{type_url}/`".format(type_url=self.type_url)
-
-    @property
-    def klass(self):
-        excl_lookups_type_dec = ts.TypeDeclaration(var_name='excludedLookups', type_=self.lookups_type_name)
-        or_queryset_dec = ts.TypeDeclaration(var_name='_or', type_=self.class_name + '[]')
-        constructor_sig = ts.CallSignature(
-            kwargs={
-                self.lookups_type_dec: "{}",
-                excl_lookups_type_dec: "{}",
-                or_queryset_dec: "[]"
-            }
-        )
-        return ts.export + ts.Klass(name=self.class_name,
-                        constructor_signature=constructor_sig,
-                        type_declarations=[
-                            self.lookups_type_dec.protected(),
-                            excl_lookups_type_dec.protected(),
-                            or_queryset_dec.protected()
-                        ])(
-            *self.methods()
-        )
+    def lookup_declarations(self):
+        return self.queryset_lookups.type_declarations()
 
     def render(self):
         return Template(self.TEMPLATE).render(queryset=self)
+
+

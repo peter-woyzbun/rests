@@ -1,15 +1,31 @@
-# res(ts)
+# res(ts): Auto-generate TypeScript models for Django projects
 
-`rests` takes `django rest framework` serializers and auto-generates the
-following:
+*Note: this is an early prototype*
 
-1. A TypeScript "model" and queryset for each serializer's model, and
-2. Django views and URL patterns for handling model (get, create...)
-   and queryset (filter, exclude...) logic.
+`rests` generates TypeScript "models" and querysets, and corresponding
+Django URLs/Views. The TypeScript models and querysets are functionally
+similar to their Django equivalents.
 
-## Example
+## Table of Contents
 
-Given the following models:
+- [Features](#features)
+- [Usage Example](#usage-example)
+- [Full Example](#full-example)
+- [Basic Usage](#basic-usage)
+
+
+## Features
+
+* Create/update/delete/filter/exclude Django models via TypeScript.
+* All queryset "lookup" keys are generated, allowing for type hints in
+TypeScript akin to what you would expect in an IDE with Django support.
+* Filter relations.
+* Automatic retrieval of foreign key relations (on `get`).
+
+## Usage Example
+
+
+In Python/Django:
 
 ```python
 from django.db import models
@@ -27,8 +43,33 @@ class Choice(models.Model):
 
 ```
 
+In TypeScript:
+
+```typescript
+
+// Create a Question instance.
+const newQuestion = await Question.objects.create({question_test: 'Question?'})
+
+// Get a Question instance.
+const question = await Question.objects.get(1)
+
+// Get choices of question with more than 3 votes.
+const choices = await question.choices({votes__gt: 3}).retrieve()
+
+
+```
+
+
 the TypeScript file [models.ts](https://github.com/peter-woyzbun/rests/blob/master/example/ts/models.ts)
-is generated.
+is generated. See [here](https://github.com/peter-woyzbun/rests/tree/master/example)
+for the full example.
+
+
+## Full Example
+
+A full example can be found in the `example` directory of this project.
+The Django project is found [here](https://github.com/peter-woyzbun/rests/tree/master/example/example) and the
+corresponding (generated) TypeScript code is found [here](https://github.com/peter-woyzbun/rests/tree/master/example/example).
 
 ## Basic Usage
 
@@ -40,7 +81,21 @@ Install `rests` via pip:
 pip install https://github.com/peter-woyzbun/rests.git
 ```
 
-Then add `rests` to `INSTALLED_APPS` in `settings.py`.
+Then add `rests` to `INSTALLED_APPS` in `settings.py`:
+
+```python
+INSTALLED_APPS = (
+            'django.contrib.auth',
+            ...
+            'rests',
+        )
+
+```
+
+### Serializers
+
+`rests` requires Django Rest Framework serializers. DRF permission check
+classes can also optionally be provided.
 
 ### Interface Definition
 
@@ -58,7 +113,14 @@ class Interface(interface.Interface):
 
 ```
 
-then, in `urls.py`:
+Each class property of the `Interface` class should be an `interface.Type`
+instance with a serializer whose model you want exposed in your TypeScript
+code.
+
+Queryset lookups and relations will only be generated for/between models
+contained in your interface definition.
+
+Next, register your `Interface`'s url patterns in `urls.py`:
 
 ```python
 
@@ -81,17 +143,19 @@ In `settings.py`, add the following, replacing the appropriate values:
 RESTS = {
     'TRANSPILE_DEST': <path to transpile to>,
     'BASE_URL': '<base url of your interface, e.g: "http://localhost:5000/">',
-    'POST_TRANSPILE_COMMAND': None,
-    'INTERFACE_SRC': '<module.path.to.your.Interface>',
-    'MODELS_FILENAME': 'models.ts'
+    'INTERFACE_SRC': '<module.path.to.your.interface>',
 }
 
-
 ```
+The `BASE_URL` setting should reflect where you registered your
+`Interface`'s url patterns. The `TRANSPILE_DEST` setting defines where
+to put the TypeScript generated for your `Interface`. The `INTERFACE_SRC`
+setting points to the python file containing your `Interface` class.
 
 ### Transpile
 
-Finally, to generate the TypeScript code, use
+Finally, to generate the TypeScript code, in your project directory
+(containing `manage.py`) use
 
 ```
 python manage.py transpile

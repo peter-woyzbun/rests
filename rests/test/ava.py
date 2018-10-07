@@ -23,7 +23,7 @@ class Test(object):
         self._assertion = None
 
     def import_model(self, model_cls):
-        self.imports = "import {} from './models'".format("{" + model_cls.__name__ + "}")
+        self.imports = "import {} from './server/models'".format("{" + model_cls.__name__ + "}")
         return self
 
     def import_object(self, object_cls):

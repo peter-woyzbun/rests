@@ -3,7 +3,6 @@ from typing import Type, List, Union
 from django.db import models
 
 from rests.core.utils.model_inspector import ModelInspector
-from rests.typescript import code_generators as ts
 from rests.typescript.type_transpiler import TypeTranspiler
 
 
@@ -52,23 +51,13 @@ class QuerysetLookups(object):
         if not isinstance(field, models.ManyToOneRel):
             # This is the base lookup for the field.
             type_declarations.append(
-                ts.TypeDeclaration(
-                    var_name=self._lookup_key([field.name]),
-                    type_=self._lookup_type(field, None),
-                    optional=True
-                )
+                self._lookup_key([field.name]) + "? : " + self._lookup_type(field, None)
             )
 
             for lookup_str, lookup_cls in field.get_lookups().items():
-
                 type_declarations.append(
-                    ts.TypeDeclaration(
-                        var_name=self._lookup_key([field.name, lookup_str]),
-                        type_=self._lookup_type(field, lookup_cls),
-                        optional=True
-                    )
+                    self._lookup_key([field.name, lookup_str]) + "? : " + self._lookup_type(field, lookup_cls)
                 )
-
         return type_declarations
 
     @staticmethod

@@ -37,7 +37,6 @@ urlpatterns = Interface.urlpatterns()
 # ---------------------------------
 
 class IntegrationTests(IntegrationTestCase):
-
     ROOT_URL_CONF = __name__
 
     def test_get_thing_pk(self):
@@ -45,16 +44,16 @@ class IntegrationTests(IntegrationTestCase):
         self.assertAvaTestPassed(
             ava.Test('get-thing-pk')
                 .async()
-                .import_model(Thing).body("const obj = await Thing.objects.get({});".format(thing.id))
+                .import_model(Thing).body("const obj = await Thing.objects.get({}, {{}});".format(thing.id))
                 .deep_equal('obj.pk()', thing.id)
         )
 
     def test_get_thing_name(self):
         thing = Thing.objects.create(name='abc')
         self.assertAvaTestPassed(
-            ava.Test('get-thing-pk')
+            ava.Test('get-thing-name')
                 .async()
-                .import_model(Thing).body("const obj = await Thing.objects.get({});".format(thing.id))
+                .import_model(Thing).body("const obj = await Thing.objects.get({}, {{}});".format(thing.id))
                 .deep_equal('obj.name', ava.literal('abc'))
         )
 
@@ -64,7 +63,7 @@ class IntegrationTests(IntegrationTestCase):
             ava.Test('update-thing')
                 .async()
                 .import_model(Thing).body("""
-                const obj = await Thing.objects.get({});
+                const obj = await Thing.objects.get({}, {{}});
                 obj.name = 'abc123';
                 await obj.save()
                 """.format(thing.id))
@@ -80,7 +79,7 @@ class IntegrationTests(IntegrationTestCase):
             ava.Test('update-thing')
                 .async()
                 .import_model(Thing).body("""
-                const obj = await Thing.objects.get({});
+                const obj = await Thing.objects.get({}, {{}});
                 await obj.update({{name: 'abc123'}})
                 """.format(thing.id))
                 .deep_equal('obj.name', ava.literal('abc123'))
@@ -135,7 +134,7 @@ class IntegrationTests(IntegrationTestCase):
             ava.Test('filter-things')
                 .async()
                 .import_model(Thing).body("""
-                const page = await Thing.objects.filter({}).pageValues(1, 2, {}, 'name');
+                const page = await Thing.objects.filter({}).pageValues({}, 1, 2, 'name');
                 """)
                 .deep_equal('page.data.length', 2)
         )
@@ -183,26 +182,14 @@ class IntegrationTests(IntegrationTestCase):
                 .deep_equal('pks', [child_2.id])
         )
 
-    def _test_object_endpoint(self):
+    def test_foreign_key(self):
+        thing_1 = Thing.objects.create(name='1')
+        child_1 = ThingChild.objects.create(parent=thing_1)
         self.assertAvaTestPassed(
-            ava.Test('get-object-name')
+            ava.Test('filter-things')
                 .async()
-                .import_object(GenericObject).body("""
-                const obj = new GenericObject('a');
-                const objName = await obj.getName({});
-                                """)
-                .deep_equal("objName['name']", ava.literal('a'))
-        )
-
-    def _test_object_endpoint_with_arg(self):
-        self.assertAvaTestPassed(
-            ava.Test('get-object-name')
-                .async()
-                .import_object(GenericObject).body("""
-                const obj = new GenericObject('a');
-                const data = await obj.funcWithArg({}, 10);
-                                """)
-                .deep_equal("data['val']", 1000)
-        )
-
-
+                .import_model(ThingChild).body("""
+                           const obj = await ThingChild.objects.get({0});
+                           const parent = await obj.parent;
+                           """.format(child_1.id))
+                .deep_equal('parent.pk()', thing_1.id))
