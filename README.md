@@ -89,7 +89,7 @@ in `tsconfig.json`.
 Install `rests` via pip:
 
 ```
-pip install https://github.com/peter-woyzbun/rests.git
+pip install git+https://github.com/peter-woyzbun/rests.git
 ```
 
 Then add `rests` to `INSTALLED_APPS` in `settings.py`:
