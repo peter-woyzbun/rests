@@ -54,7 +54,7 @@ In TypeScript:
 ```typescript
 
 // Create a Question instance.
-const newQuestion = await Question.objects.create({question_test: 'Question?'})
+const newQuestion = await Question.objects.create({question_text: 'Question?'})
 
 // Get a Question instance.
 const question = await Question.objects.get(1)
