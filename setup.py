@@ -18,6 +18,7 @@ setup(name='rests',
                         'pyyaml',
                         'django>=2.1',
                         'djangorestframework',
-                        'jinja2'
+                        'jinja2',
+                        'mypy_extensions'
                         ],
       zip_safe=False)
