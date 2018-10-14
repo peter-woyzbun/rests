@@ -80,7 +80,7 @@ class Field(object):
 
     @property
     def fk_id_type_declaration(self):
-        return self.fk_id_name + "?" * self.is_optional + " : " + TypeTranspiler.transpile(self.field)
+        return self.fk_id_name + "?" * self.is_optional + " : number"
 
     def interface_type_declarations(self):
         type_declarations = list()

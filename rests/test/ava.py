@@ -30,7 +30,7 @@ class Test(object):
         self.imports = "import {} from './objects'".format("{" + object_cls.__name__ + "}")
         return self
 
-    def async(self):
+    def call_async(self):
         self._async = True
         return self
 

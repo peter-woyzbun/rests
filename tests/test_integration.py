@@ -43,7 +43,7 @@ class IntegrationTests(IntegrationTestCase):
         thing = Thing.objects.create()
         self.assertAvaTestPassed(
             ava.Test('get-thing-pk')
-                .async()
+                .call_async()
                 .import_model(Thing).body("const obj = await Thing.objects.get({}, {{}});".format(thing.id))
                 .deep_equal('obj.pk()', thing.id)
         )
@@ -52,7 +52,7 @@ class IntegrationTests(IntegrationTestCase):
         thing = Thing.objects.create(name='abc')
         self.assertAvaTestPassed(
             ava.Test('get-thing-name')
-                .async()
+                .call_async()
                 .import_model(Thing).body("const obj = await Thing.objects.get({}, {{}});".format(thing.id))
                 .deep_equal('obj.name', ava.literal('abc'))
         )
@@ -61,7 +61,7 @@ class IntegrationTests(IntegrationTestCase):
         thing = Thing.objects.create(name='abc')
         self.assertAvaTestPassed(
             ava.Test('update-thing')
-                .async()
+                .call_async()
                 .import_model(Thing).body("""
                 const obj = await Thing.objects.get({}, {{}});
                 obj.name = 'abc123';
@@ -77,7 +77,7 @@ class IntegrationTests(IntegrationTestCase):
         thing = Thing.objects.create(name='abc')
         self.assertAvaTestPassed(
             ava.Test('update-thing')
-                .async()
+                .call_async()
                 .import_model(Thing).body("""
                 const obj = await Thing.objects.get({}, {{}});
                 await obj.update({{name: 'abc123'}})
@@ -92,7 +92,7 @@ class IntegrationTests(IntegrationTestCase):
         thing = Thing.objects.create(name='abc')
         self.assertAvaTestPassed(
             ava.Test('delete-thing')
-                .async()
+                .call_async()
                 .import_model(Thing).body("""
                         const obj = await Thing.objects.get({});
                         await obj.delete()
@@ -106,7 +106,7 @@ class IntegrationTests(IntegrationTestCase):
         thing_2 = Thing.objects.create(name='2')
         self.assertAvaTestPassed(
             ava.Test('filter-things')
-                .async()
+                .call_async()
                 .import_model(Thing).body("""
                 const objects = await Thing.objects.filter({name: '1'}).retrieve();
                 const pks = objects.map((obj) => {return obj.pk()})
@@ -119,7 +119,7 @@ class IntegrationTests(IntegrationTestCase):
         thing_2 = Thing.objects.create(name='2')
         self.assertAvaTestPassed(
             ava.Test('filter-things')
-                .async()
+                .call_async()
                 .import_model(Thing).body("""
                 const objects = await Thing.objects.filter({name: '1'}).values({}, 'name');
                 """)
@@ -132,7 +132,7 @@ class IntegrationTests(IntegrationTestCase):
         thing_3 = Thing.objects.create(name='3')
         self.assertAvaTestPassed(
             ava.Test('filter-things')
-                .async()
+                .call_async()
                 .import_model(Thing).body("""
                 const page = await Thing.objects.filter({}).pageValues({}, 1, 2, 'name');
                 """)
@@ -144,7 +144,7 @@ class IntegrationTests(IntegrationTestCase):
         thing_2 = Thing.objects.create(name='2')
         self.assertAvaTestPassed(
             ava.Test('filter-things')
-                .async()
+                .call_async()
                 .import_model(Thing).body("""
                 const objects = await Thing.objects.filter({name: '1'}).or(Thing.objects.filter({name: '2'})).retrieve();
                 const pks = objects.map((obj) => {return obj.pk()})
@@ -158,7 +158,7 @@ class IntegrationTests(IntegrationTestCase):
         child_2 = ThingChild.objects.create(parent=thing_1)
         self.assertAvaTestPassed(
             ava.Test('filter-things')
-                .async()
+                .call_async()
                 .import_model(Thing).body("""
                         const obj = await Thing.objects.get({0});
                         const children = await obj.children().retrieve();
@@ -173,7 +173,7 @@ class IntegrationTests(IntegrationTestCase):
         child_2 = ThingChild.objects.create(parent=thing_1, name='a')
         self.assertAvaTestPassed(
             ava.Test('filter-things')
-                .async()
+                .call_async()
                 .import_model(Thing).body("""
                         const obj = await Thing.objects.get({0});
                         const children = await obj.children().filter({{name: 'a'}}).retrieve();
@@ -187,7 +187,7 @@ class IntegrationTests(IntegrationTestCase):
         child_1 = ThingChild.objects.create(parent=thing_1)
         self.assertAvaTestPassed(
             ava.Test('filter-things')
-                .async()
+                .call_async()
                 .import_model(ThingChild).body("""
                            const obj = await ThingChild.objects.get({0});
                            const parent = await obj.parent;

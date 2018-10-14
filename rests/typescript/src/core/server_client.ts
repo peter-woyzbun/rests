@@ -13,7 +13,7 @@ export interface ResponseHandlers {
     onError?: (err) => any
 }
 
-
+type RequestType = 'GET' | 'POST' | 'PATCH' | 'DELETE'
 
 
 // -------------------------
@@ -24,9 +24,21 @@ export interface ResponseHandlers {
 export class ServerClient {
 
     public baseUrl: string;
+    public headerMiddleware: (header: object) => object;
 
     constructor(baseUrl: string) {
         this.baseUrl = baseUrl;
+        this.headerMiddleware = (header) => header
+
+    }
+
+    private _requestOptions(requestType: RequestType, headers?: object, body?: any | undefined): object{
+        let requestOptions = {
+            method: requestType,
+        };
+        if (body){requestOptions['body'] = body}
+        if (headers){requestOptions['headers'] = this.headerMiddleware(headers)}
+        return requestOptions
     }
 
     /**
@@ -34,7 +46,7 @@ export class ServerClient {
      *
      */
     public async get(url: string, responseHandlers: ResponseHandlers={}, urlQuery?): Promise<any | undefined> {
-        return ((fetch(this._buildUrl(url, urlQuery))
+        return ((fetch(this._buildUrl(url, urlQuery), this._requestOptions('GET'))
                 .then(res => {
                     if (res.status in responseHandlers){
                         responseHandlers[res.status](res)
@@ -59,11 +71,7 @@ export class ServerClient {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         };
-        return ((fetch(this._buildUrl(url), {
-                body: JSON.stringify(postData),
-                method: 'POST',
-                headers: headers
-            })
+        return ((fetch(this._buildUrl(url), this._requestOptions('POST', headers, JSON.stringify(postData)))
                 .then(res => {
                     if (res.status in responseHandlers){
                         responseHandlers[res.status](res)
@@ -82,10 +90,8 @@ export class ServerClient {
      *
      */
     public async patch(url: string, patchData?: object, responseHandlers: ResponseHandlers={}): Promise<any | undefined> {
-        return ((fetch(this._buildUrl(url), {
-                body: JSON.stringify(patchData),
-                method: 'PATCH',
-            })
+        return ((fetch(this._buildUrl(url),
+                this._requestOptions('PATCH', {}, JSON.stringify(patchData)))
                 .then(res => {
                     if (res.status in responseHandlers){
                         responseHandlers[res.status](res)
@@ -104,9 +110,7 @@ export class ServerClient {
      *
      */
     public async delete(url: string, postData?: object, responseHandlers: ResponseHandlers={}): Promise<Response | undefined> {
-        return ((fetch(this._buildUrl(url), {
-                method: 'DELETE',
-            })
+        return ((fetch(this._buildUrl(url), this._requestOptions('DELETE'))
                 .then(res => {
                     if (res.status in responseHandlers){
                         responseHandlers[res.status](res)
