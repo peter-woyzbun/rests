@@ -68,7 +68,10 @@ class Transpiler(object):
         Write the "core" source files to destination directory.
 
         """
-        copy_tree(str(typescript.SOURCE_DIR), os.path.join(self.dest_dir, 'core'))
+        core_dir = os.path.join(self.dest_dir, 'core')
+        if not os.path.exists(core_dir):
+            os.mkdir(core_dir)
+        copy_tree(str(typescript.SOURCE_DIR), core_dir)
 
     def _write_server_client(self):
         """
