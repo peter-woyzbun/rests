@@ -48,7 +48,10 @@ class QuerysetLookups(object):
                                                          prefixes=self.prefixes + [field.name],
                                                          visited_models=self.visited_models + [self.model])
                 type_declarations += child_queryset_lookups.type_declarations()
+            else:
+                return type_declarations
         if not isinstance(field, models.ManyToOneRel):
+
             # This is the base lookup for the field.
             type_declarations.append(
                 self._lookup_key([field.name]) + "? : " + self._lookup_type(field, None)

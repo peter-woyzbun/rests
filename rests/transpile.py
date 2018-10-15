@@ -23,7 +23,7 @@ class Transpiler(object):
     ROOT_DIR_NAME = 'server'
     MODELS_FILENAME = 'models.ts'
 
-    SERVER_CLIENT_CORE_IMPORT = "import {ResponseHandlers} from './core/server_client'"
+    SERVER_CLIENT_CORE_IMPORT = "import {ResponseHandlers, ServerClient} from './core/server_client'"
     SERVER_CLIENT_IMPORT = "import {serverClient} from './client'"
     MODEL_IMPORT = "import {Model} from './core/model'"
     QUERYSET_IMPORT = "import {Queryset} from './core/queryset'"

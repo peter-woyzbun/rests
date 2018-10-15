@@ -24,19 +24,19 @@ class Model(object):
     //
     // -------------------------
 
-    interface {{ model.interface_type_name }} {
+    export interface {{ model.interface_type_name }} {
     {% for type_dec in model.field_interface_type_declarations %}{{ type_dec }}, \n{% endfor %}
     }
 
 
     export class {{ model.name }} extends Model {
 
-        static BASE_URL = '/{{ model.type_url }}';
-        static PK_FIELD_NAME = '{{ model.pk_field_name }}';
-        static FIELDS = [{{ model.literal_field_names }}];
+        public static BASE_URL = '/{{ model.type_url }}';
+        public static PK_FIELD_NAME = '{{ model.pk_field_name }}';
+        public static FIELDS = [{{ model.literal_field_names }}];
 
-        static objects = {{ model.queryset_cls_name }};
-        static serverClient = serverClient;
+        public static objects = {{ model.queryset_cls_name }};
+        public static serverClient = serverClient;
 
         {% for type_dec in model.field_cls_type_declarations %}{{ type_dec }};\n{% endfor %}
 
@@ -69,7 +69,7 @@ class Model(object):
         self.model_pool = model_pool
         self.type_url = type_url
         self.model_inspector = ModelInspector(model=model)
-        self.fields = [Field(field) for field in self.model_inspector.model_fields()]
+        self.fields = [Field(field, model_pool=model_pool) for field in self.model_inspector.model_fields()]
 
     @property
     def name(self):
@@ -115,7 +115,7 @@ class Model(object):
 
     @property
     def reverse_relation_fields(self):
-        return [f for f in self.fields if f.is_reverse_relation]
+        return [f for f in self.fields if f.is_reverse_relation and f.related_model in self.model_pool]
 
     def render(self):
         return Template(self.TEMPLATE).render(model=self)

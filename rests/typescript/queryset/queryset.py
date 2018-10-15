@@ -33,8 +33,8 @@ class Queryset(object):
 
     export class {{ queryset.name }} extends Queryset{
     
-        static Model: typeof {{ queryset.model_name }};
-        static serverClient = serverClient;
+        public static Model: typeof {{ queryset.model_name }};
+        public static serverClient = serverClient;
     
         protected lookups: {{ queryset.lookups_type_name }};
         protected excludedLookups: {{ queryset.lookups_type_name }};

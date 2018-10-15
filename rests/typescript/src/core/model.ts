@@ -9,12 +9,12 @@ import {Queryset} from "./queryset";
 
 export class Model {
 
-    static BASE_URL: string;
-    static PK_FIELD_NAME: string;
+    public static BASE_URL: string;
+    public static PK_FIELD_NAME: string;
 
     public static readonly FIELDS: string[];
-    static serverClient: ServerClient;
-    static objects: typeof Queryset;
+    public static serverClient: ServerClient;
+    public static objects: typeof Queryset;
 
     constructor(data: object){
         Object.keys(data).map(fieldName => this[fieldName] = data[fieldName])

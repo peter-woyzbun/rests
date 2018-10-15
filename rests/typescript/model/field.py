@@ -1,3 +1,5 @@
+from typing import Type, List
+
 from django.db import models
 
 from rests.core.utils.model_inspector import ModelInspector
@@ -15,8 +17,9 @@ class Field(object):
 
     """
 
-    def __init__(self, field: models.Field):
+    def __init__(self, field: models.Field, model_pool: List[Type[models.Model]]):
         self.field = field
+        self.model_pool = model_pool
 
     @property
     def is_relational(self):
@@ -46,6 +49,8 @@ class Field(object):
         names = list()
         if isinstance(self.field, models.ManyToOneRel):
             return names
+        if self.related_model is not None and self.related_model not in self.model_pool:
+            return names
         names.append(self.name)
         if self.is_relational:
             names.append(self.fk_id_name)
@@ -60,6 +65,12 @@ class Field(object):
         if self.is_concrete:
             return None
         return self.field.related_model.__name__
+
+    @property
+    def related_model(self):
+        if self.is_concrete:
+            return None
+        return self.field.related_model
 
     @property
     def reverse_lookup_key(self):
@@ -87,6 +98,8 @@ class Field(object):
         # We don't declare many-to-one relational fields.
         if isinstance(self.field, models.ManyToOneRel):
             return type_declarations
+        if self.related_model is not None and self.related_model not in self.model_pool:
+            return type_declarations
         type_declarations.append(self.base_interface_type_declaration)
         # If this field is a ForeignKey, add an extra declaration for its
         # `id` lookup.
@@ -98,6 +111,8 @@ class Field(object):
         type_declarations = list()
         # We don't declare many-to-one relational fields.
         if isinstance(self.field, models.ManyToOneRel):
+            return type_declarations
+        if self.related_model is not None and self.related_model not in self.model_pool:
             return type_declarations
         type_declarations.append(self.base_cls_type_declaration)
         # If this field is a ForeignKey, add an extra declaration for its
