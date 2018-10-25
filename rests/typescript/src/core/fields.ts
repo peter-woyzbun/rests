@@ -6,9 +6,11 @@ import {Model} from './model'
 //
 // -------------------------
 
-export const foreignKeyField = (RelatedModel: typeof Model) =>
+export const foreignKeyField = (RelatedModel: () => typeof Model) =>
 
   function(target: Model, propertyKey: string) {
+
+    const _RelatedModel = RelatedModel();
 
     // Key for retrieving the ID value of this foreign key relation.
     const idPropertyKey = propertyKey + '_id';
@@ -19,7 +21,7 @@ export const foreignKeyField = (RelatedModel: typeof Model) =>
     const getter = async () => {
         if (value){ return value }
         if (idValue){
-            value = await RelatedModel.objects.get(idValue);
+            value = await _RelatedModel.objects.get(idValue);
             return value
         }
         return undefined

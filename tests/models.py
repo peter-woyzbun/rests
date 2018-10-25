@@ -33,6 +33,18 @@ class ThingChild(TestModel):
     number = models.IntegerField(null=True)
 
 
+class ThingChildChild(TestModel):
+    parent = models.ForeignKey(ThingChild, related_name='children', on_delete=models.CASCADE)
+    name = models.CharField(null=True, max_length=200)
+    number = models.IntegerField(null=True)
+
+
+class ThingChildChildChild(TestModel):
+    parent = models.ForeignKey(ThingChildChild, related_name='children', on_delete=models.CASCADE)
+    name = models.CharField(null=True, max_length=200)
+    number = models.IntegerField(null=True)
+
+
 # =================================
 # Serializers
 # ---------------------------------

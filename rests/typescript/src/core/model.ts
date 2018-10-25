@@ -1,5 +1,6 @@
 import {ServerClient, ResponseHandlers} from "./server_client";
 import {Queryset} from "./queryset";
+import {ModelFieldsSchema} from "./field_schema";
 
 
 // -------------------------
@@ -11,6 +12,7 @@ export class Model {
 
     public static BASE_URL: string;
     public static PK_FIELD_NAME: string;
+    public static FIELDS_SCHEMA: ModelFieldsSchema;
 
     public static readonly FIELDS: string[];
     public static serverClient: ServerClient;

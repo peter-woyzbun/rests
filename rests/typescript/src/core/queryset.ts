@@ -5,7 +5,7 @@ import {Model} from "./model";
 
 export abstract class Queryset{
 
-    public static Model: typeof Model;
+    public static Model: any;
     public static serverClient: ServerClient;
 
     protected lookups: object;
@@ -39,17 +39,20 @@ export abstract class Queryset{
         return undefined
     }
 
-    public filter(lookups: object): Queryset{
+    public filter(lookups: object): this{
         let updatedLookups = this.lookups;
         Object.keys(lookups).map((lookupKey) => {
             const lookupValue = lookups[lookupKey];
             if (lookupValue !== undefined){ updatedLookups[lookupKey] = lookupValue }
         });
-        this.lookups = updatedLookups;
-        return this;
+         return new (this.constructor as any)(updatedLookups);
     }
 
-    public exclude(lookups: object): Queryset{
+    public static filter(lookups: object): any {
+        return new (this.constructor as any)(lookups);
+    }
+
+    public exclude(lookups: object): this{
         let updatedLookups = this.excludedLookups;
         Object.keys(lookups).map((lookupKey) => {
             const lookupValue = lookups[lookupKey];
@@ -59,7 +62,7 @@ export abstract class Queryset{
         return this;
     }
 
-    public or(queryset: Queryset): Queryset{
+    public or(queryset: Queryset): this{
         this._or.push(queryset);
         return this
     }

@@ -5,8 +5,8 @@ import {Model} from "./model";
 
 export abstract class Queryset{
 
-    static Model: typeof Model;
-    static serverClient: ServerClient;
+    public static Model: typeof Model;
+    public static serverClient: ServerClient;
 
     protected lookups: object;
     protected excludedLookups: object;

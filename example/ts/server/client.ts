@@ -1,4 +1,4 @@
-import {ResponseHandlers} from './core/server_client'
+import {ResponseHandlers, ServerClient} from './core/server_client'
 
 // -------------------------
 // Server Client

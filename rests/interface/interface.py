@@ -71,7 +71,7 @@ class Interface(object):
         return models_
 
     @classmethod
-    def urlpatterns(cls):
+    def urlpatterns(cls, extra_patterns: list = None):
         """
         Return the Django URL patterns for this interface.
 
@@ -87,6 +87,8 @@ class Interface(object):
                 path('{}/'.format(object_cls.base_url()),
                      include((object_cls.urlpatterns(), camel_case_to_underscore(object_cls.__name__)))),
             )
+        if extra_patterns:
+            urlpatterns += extra_patterns
         return urlpatterns
 
     @classmethod

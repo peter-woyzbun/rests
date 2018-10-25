@@ -1,5 +1,6 @@
 from typing import List
 from functools import reduce
+import operator
 
 from django.db import models
 
@@ -66,7 +67,9 @@ class Query(object):
                     queryset = queryset.exclude(**self.exclude)
                 return queryset
             return self._q()
-        return queryset.filter(reduce(lambda q, p: p | q,
-                      [self._q()] + [c.apply_to_queryset(queryset=queryset, use_q=True) for c in self.children]))
+        if use_q:
+            return self._q()
+        queries = [self._q()] + [c.apply_to_queryset(queryset=queryset, use_q=True) for c in self.children]
+        return queryset.filter(reduce(operator.or_, queries))
 
 

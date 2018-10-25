@@ -24,10 +24,22 @@ class ModelInspector(object):
             return [f for f in self.model_fields() if isinstance(f, keep_field_type)]
         return [f for f in self.model_fields() if not isinstance(f, exclude_field_type)]
 
+    def relational_fields(self) -> List[Union[models.ForeignKey, models.OneToOneField, models.ManyToOneRel]]:
+        return [
+            f for f in self.model_fields()
+            if isinstance(f, (models.ForeignKey, models.OneToOneField, models.ManyToOneRel))
+        ]
+
     def concrete_fields(self):
         return [
             f for f in self.model_fields()
             if not isinstance(f, (models.ForeignKey, models.ManyToOneRel, models.OneToOneField))
+        ]
+
+    def reverse_related_fields(self):
+        return [
+            f for f in self.model_fields()
+            if isinstance(f, models.ManyToOneRel)
         ]
 
     @property

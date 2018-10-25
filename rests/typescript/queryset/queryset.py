@@ -5,6 +5,7 @@ from django.db import models
 from jinja2 import Template
 
 from rests.core.utils.model_inspector import ModelInspector
+from rests.interface.lookup_tree import LookupTree
 from rests.typescript.queryset.lookups import QuerysetLookups
 
 
@@ -48,6 +49,10 @@ class Queryset(object):
         return new {{ queryset.name }}(lookups)       
     }
     
+    public static all(): {{ queryset.name }} {
+        return new {{ queryset.name }}({});
+    }
+    
     public static async get(primaryKey: string | number, responseHandlers: ResponseHandlers={} ): Promise< {{ queryset.model_name }} | undefined>{
         let responseData = await this.serverClient.get(`${this.Model.BASE_URL}/${primaryKey}/get/`, responseHandlers);
 
@@ -60,12 +65,14 @@ class Queryset(object):
 
     """
 
-    def __init__(self, model: Type[models.Model], model_pool: List[Type[models.Model]], type_url):
+    def __init__(self, model: Type[models.Model], model_pool: List[Type[models.Model]], type_url,
+                 lookup_tree):
         self.model = model
         self.model_pool = model_pool
         self.type_url = type_url
+        self.lookup_tree = lookup_tree
         self.model_inspector = ModelInspector(model=model)
-        self.queryset_lookups = QuerysetLookups(model=model, model_pool=model_pool)
+        self.queryset_lookups = QuerysetLookups(model=model, model_pool=model_pool, lookup_tree=lookup_tree)
 
     @property
     def name(self):

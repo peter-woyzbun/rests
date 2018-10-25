@@ -6,7 +6,7 @@ import fetch from 'node-fetch';
 // -------------------------
 
 
-type ResponseCallback = (response) => any
+type ResponseCallback = (response) => void
 
 export interface ResponseHandlers {
     [responseCode: number]: ResponseCallback,
@@ -33,11 +33,14 @@ export class ServerClient {
     }
 
     private _requestOptions(requestType: RequestType, headers?: object, body?: any | undefined): object{
+        if (!headers){
+            headers = {}
+        }
         let requestOptions = {
             method: requestType,
         };
         if (body){requestOptions['body'] = body}
-        if (headers){requestOptions['headers'] = this.headerMiddleware(headers)}
+        requestOptions['headers'] = this.headerMiddleware(headers);
         return requestOptions
     }
 

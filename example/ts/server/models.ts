@@ -1,7 +1,8 @@
 import { Model } from './core/model'
 import { Queryset } from './core/queryset'
 import { foreignKeyField } from './core/fields'
-import { ResponseHandlers } from './core/server_client'
+import { ModelFieldsSchema } from './core/field_schema/'
+import { ResponseHandlers, ServerClient } from './core/server_client'
 import { serverClient } from './client'
 
 // -------------------------
@@ -28,14 +29,6 @@ interface QuestionLookups {
     choices__id__isnull?: number,
     choices__id__regex?: number,
     choices__id__iregex?: number,
-    choices__question?: Question,
-    choices__question__in?: Question[],
-    choices__question__exact?: Question,
-    choices__question__lt?: Question,
-    choices__question__gt?: Question,
-    choices__question__gte?: Question,
-    choices__question__lte?: Question,
-    choices__question__isnull?: Question,
     choices__choice_text?: string,
     choices__choice_text__exact?: string,
     choices__choice_text__iexact?: string,
@@ -144,8 +137,8 @@ interface QuestionLookups {
 
 export class QuestionQueryset extends Queryset {
 
-    static Model: typeof Question;
-    static serverClient = serverClient;
+    public static Model: typeof Question;
+    public static serverClient = serverClient;
 
     protected lookups: QuestionLookups;
     protected excludedLookups: QuestionLookups;
@@ -176,30 +169,31 @@ export class QuestionQueryset extends Queryset {
 //
 // -------------------------
 
-interface QuestionData {
-    id: number,
-    question_text: string,
-    pub_date: Date,
+export interface QuestionData {
 
 }
 
 
 export class Question extends Model {
 
-    static BASE_URL = '/question';
-    static PK_FIELD_NAME = 'id';
-    static FIELDS = ['id', 'question_text', 'pub_date'];
+    public static BASE_URL = '/question';
+    public static PK_FIELD_NAME = 'id';
+    public static FIELDS = [];
+    public static FIELDS_SCHEMA = {
+        id: { fieldName: 'id', fieldType: 'AutoField', nullable: false, isReadOnly: true, description: null, defaultValue: undefined, relatedModel: null, choices: [] },
+        question_text: { fieldName: 'question_text', fieldType: 'CharField', nullable: false, isReadOnly: false, description: null, defaultValue: undefined, relatedModel: null, choices: [] },
+        pub_date: { fieldName: 'pub_date', fieldType: 'DateTimeField', nullable: false, isReadOnly: false, description: null, defaultValue: undefined, relatedModel: null, choices: [] },
 
-    static objects = QuestionQueryset;
-    static serverClient = serverClient;
-
-    id: number;
-    question_text: string;
-    pub_date: Date;
+    }
 
 
-    constructor({ id, question_text, pub_date }: QuestionData) {
-        super({ id, question_text, pub_date })
+    public static objects = QuestionQueryset;
+    public static serverClient = serverClient;
+
+
+
+    constructor({ }: QuestionData) {
+        super({})
     }
 
     public async update(data: Partial<QuestionData>, responseHandlers: ResponseHandlers = {}): Promise<Question> {
@@ -210,10 +204,6 @@ export class Question extends Model {
         return this;
     }
 
-
-    public choices(lookups: ChoiceLookups = {}) {
-        return new ChoiceQueryset({ ...lookups, ...{ question__id: this.pk() } })
-    }
 
 
 }
@@ -362,8 +352,8 @@ interface ChoiceLookups {
 
 export class ChoiceQueryset extends Queryset {
 
-    static Model: typeof Choice;
-    static serverClient = serverClient;
+    public static Model: typeof Choice;
+    public static serverClient = serverClient;
 
     protected lookups: ChoiceLookups;
     protected excludedLookups: ChoiceLookups;
@@ -394,34 +384,32 @@ export class ChoiceQueryset extends Queryset {
 //
 // -------------------------
 
-interface ChoiceData {
-    id: number,
-    question: Question,
-    question_id: Question,
-    choice_text: string,
-    votes: number,
+export interface ChoiceData {
 
 }
 
 
 export class Choice extends Model {
 
-    static BASE_URL = '/choice';
-    static PK_FIELD_NAME = 'id';
-    static FIELDS = ['id', 'question', 'question_id', 'choice_text', 'votes'];
+    public static BASE_URL = '/choice';
+    public static PK_FIELD_NAME = 'id';
+    public static FIELDS = [];
+    public static FIELDS_SCHEMA = {
+        id: { fieldName: 'id', fieldType: 'AutoField', nullable: false, isReadOnly: true, description: null, defaultValue: undefined, relatedModel: null, choices: [] },
+        choice_text: { fieldName: 'choice_text', fieldType: 'CharField', nullable: false, isReadOnly: false, description: null, defaultValue: undefined, relatedModel: null, choices: [] },
+        votes: { fieldName: 'votes', fieldType: 'IntegerField', nullable: false, isReadOnly: false, description: null, defaultValue: undefined, relatedModel: null, choices: [] },
+        question_id: { fieldName: 'question', fieldType: 'ForeignKey', nullable: false, isReadOnly: false, description: null, defaultValue: undefined, relatedModel: 'Question', choices: [] },
 
-    static objects = ChoiceQueryset;
-    static serverClient = serverClient;
-
-    id: number;
-    @foreignKeyField(Question) question: Question;
-    question_id: Question;
-    choice_text: string;
-    votes: number;
+    }
 
 
-    constructor({ id, question, question_id, choice_text, votes }: ChoiceData) {
-        super({ id, question, question_id, choice_text, votes })
+    public static objects = ChoiceQueryset;
+    public static serverClient = serverClient;
+
+
+
+    constructor({ }: ChoiceData) {
+        super({})
     }
 
     public async update(data: Partial<ChoiceData>, responseHandlers: ResponseHandlers = {}): Promise<Choice> {

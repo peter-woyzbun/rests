@@ -1,3 +1,4 @@
+from django.core.exceptions import ImproperlyConfigured
 
 
 class RestsException(Exception):
@@ -8,7 +9,7 @@ class TranspileError(RestsException):
     pass
 
 
-class InterfaceError(RestsException):
+class InterfaceError(RestsException, ImproperlyConfigured):
     pass
 
 

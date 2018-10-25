@@ -32,7 +32,6 @@ class TypeTranspiler(object):
         types.Undefined: types.UNDEFINED,
         # Model field types
         JSONField: types.OBJECT,
-        ArrayField: types.ARRAY,
         models.CharField: types.STRING,
         models.TextField: types.STRING,
         models.UUIDField: types.STRING,
@@ -54,7 +53,9 @@ class TypeTranspiler(object):
         models.DateField: types.DATE,
         models.ForeignKey: lambda x: x.related_model.__name__,
         models.OneToOneField: lambda x: x.related_model.__name__,
+        models.ManyToManyField: lambda x: x.related_model.__name__,
         models.ManyToOneRel: lambda x: x.related_model.__name__,
+        ArrayField: lambda x: TypeTranspiler.transpile(x.base_field) + "[]",
         # Model type
         models.Model: lambda x: x.__name__,
     }
@@ -86,17 +87,21 @@ class TypeTranspiler(object):
 
     @classmethod
     def render_atomic_type(cls, type_):
+        # Todo: catch exceptions/errors here.
         base_type = type_
         if not inspect.isclass(type_):
             base_type = type(type_)
         if issubclass(base_type, models.Model):
             base_type = models.Model
+        if base_type not in cls.ATOMIC_TYPES:
+            return cls.render_atomic_type(type_=base_type.__bases__[0])
         if hasattr(cls.ATOMIC_TYPES[base_type], "__call__"):
             return cls.ATOMIC_TYPES[base_type](type_)
         return cls.ATOMIC_TYPES[base_type]
 
     @classmethod
     def _transpile(cls, type_):
+
         if not isinstance(type_, tuple):
             return cls.render_atomic_type(type_)
         if isinstance(type_[0], tuple):
@@ -106,7 +111,10 @@ class TypeTranspiler(object):
         if type_[0] in cls.CONTAINER_TYPES:
             return cls.CONTAINER_TYPES[type_[0]](cls._transpile(type_[1]))
         if len(type_) == 1:
-            return cls.render_atomic_type(type_[0])
+            try:
+                return cls.render_atomic_type(type_[0])
+            except KeyError:
+                return cls.render_atomic_type(type_[0].__class__)
 
 
 

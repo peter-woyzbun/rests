@@ -12,7 +12,10 @@ from rest_framework.request import Request
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+
+from rests.interface.lookup_tree import LookupTree
 from rests.core.utils.subset_serializer import subset_serializer
+from rests.core.utils.model_inspector import ModelInspector
 from rests.interface.query import Query
 
 
@@ -36,8 +39,9 @@ class Type(object):
     """
 
     def __init__(self, serializer_cls: typing.Type[serializers.ModelSerializer],
-                 create_permissions: PermissionClasses=None, get_permissions: PermissionClasses=None,
-                 delete_permissions: PermissionClasses=None, update_permissions: PermissionClasses=None):
+                 lookup_tree: LookupTree = None, create_permissions: PermissionClasses=None,
+                 get_permissions: PermissionClasses=None, delete_permissions: PermissionClasses=None,
+                 update_permissions: PermissionClasses=None):
         """
 
 
@@ -45,6 +49,9 @@ class Type(object):
         ----------
         serializer_cls :
             The `rest_framework` `ModelSerializer` for this interface Type.
+        lookup_tree :
+            LookupTree defining tree of related lookups to generate for this
+            interface Type.
         create_permissions :
             An optional tuple of `rest_framework` permission classes to use for the
             `create` view of this Type.
@@ -59,10 +66,18 @@ class Type(object):
             `update` view of this Type.
         """
         self.serializer_cls = serializer_cls
+        self.lookup_tree = lookup_tree if lookup_tree is not None else LookupTree(tree=[])
         self.create_permissions = create_permissions
         self.get_permissions = get_permissions
         self.delete_permissions = delete_permissions
         self.update_permissions = update_permissions
+
+        self._add_lookup_tree_defaults()
+
+    def _add_lookup_tree_defaults(self):
+        model_inspector = ModelInspector(model=self.model_cls)
+        for field in model_inspector.relational_fields():
+            self.lookup_tree += field.related_model
 
     def urlpatterns(self):
         """
@@ -87,7 +102,7 @@ class Type(object):
 
         def get_view(request, pk):
             instance = self.model_cls.objects.get(pk=pk)
-            serializer = self._get_serializer(instance)
+            serializer = self._get_serializer(instance, context={'request': request})
             return Response(serializer.data)
         if self.get_permissions:
             get_view.permission_classes = self.get_permissions
@@ -101,7 +116,7 @@ class Type(object):
         """
 
         def create_view(request):
-            serializer = self._get_serializer(data=request.data)
+            serializer = self._get_serializer(data=request.data, context={'request': request})
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -118,9 +133,9 @@ class Type(object):
         """
         def update_view(request, pk):
             instance = self.model_cls.objects.get(pk=pk)
-            serializer = self._get_serializer(data=request.data)
+            serializer = self._get_serializer(data=request.data, context={'request': request}, partial=True, instance=instance)
             serializer.is_valid(raise_exception=True)
-            serializer.update(instance=instance, validated_data=request.data)
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         if self.update_permissions:
@@ -148,6 +163,7 @@ class Type(object):
                 # Todo: find root cause of this.
                 query_json = query_json.replace(u'\ufeff', '')
                 query_data = json.loads(query_json)
+                print(query_data)
                 query = Query(**query_data)
                 queryset = query.apply_to_queryset(queryset=queryset)
 

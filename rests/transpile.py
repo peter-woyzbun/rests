@@ -28,6 +28,7 @@ class Transpiler(object):
     MODEL_IMPORT = "import {Model} from './core/model'"
     QUERYSET_IMPORT = "import {Queryset} from './core/queryset'"
     FOREIGN_KEY_IMPORT = "import {foreignKeyField} from './core/fields'"
+    FIELD_SCHEMA_IMPORT = "import {ModelFieldsSchema, FieldSchema, FieldType} from './core/field_schema'"
 
     def __init__(self, interface: Type[Interface], server_url: str, root_dest_dir, confirm_overwrite=False):
         self.interface = interface
@@ -95,10 +96,11 @@ class Transpiler(object):
         code.append(self.MODEL_IMPORT)
         code.append(self.QUERYSET_IMPORT)
         code.append(self.FOREIGN_KEY_IMPORT)
+        code.append(self.FIELD_SCHEMA_IMPORT)
         code.append(self.SERVER_CLIENT_CORE_IMPORT)
         code.append(self.SERVER_CLIENT_IMPORT)
         for interface_type in self.interface.types().values():
-            code.append(self.model_source(model=interface_type.model_cls, type_url=interface_type.base_url))
+            code.append(self.model_source(interface_type=interface_type, type_url=interface_type.base_url))
         models_file.write("\n".join(code))
         models_file.close()
         try:
@@ -112,11 +114,12 @@ class Transpiler(object):
     def model_pool(self):
         return self.interface.models()
 
-    def model_source(self, model, type_url) -> str:
+    def model_source(self, interface_type, type_url) -> str:
         """
         Generate and return TypeScript source code for given model.
 
         """
-        typescript_model = typescript.Model(model=model, model_pool=self.model_pool, type_url=type_url)
-        typescript_queryset = typescript.Queryset(model=model, model_pool=self.model_pool, type_url=type_url)
+        typescript_model = typescript.TypeModel(interface_type=interface_type, model_pool=self.model_pool)
+        typescript_queryset = typescript.Queryset(model=interface_type.model_cls, model_pool=self.model_pool,
+                                                  type_url=type_url, lookup_tree=interface_type.lookup_tree)
         return typescript_queryset.render() + '\n' + typescript_model.render()

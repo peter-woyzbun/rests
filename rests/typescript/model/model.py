@@ -34,6 +34,7 @@ class Model(object):
         public static BASE_URL = '/{{ model.type_url }}';
         public static PK_FIELD_NAME = '{{ model.pk_field_name }}';
         public static FIELDS = [{{ model.literal_field_names }}];
+        
 
         public static objects = {{ model.queryset_cls_name }};
         public static serverClient = serverClient;
