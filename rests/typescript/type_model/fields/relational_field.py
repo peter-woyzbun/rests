@@ -10,6 +10,9 @@ from rests.typescript.utils.render_object import Literal
 
 class RelationalField(ConcreteField):
 
+    def exposed_name(self):
+        return self.fk_id_name
+
     def names(self) -> Iterable[str]:
         yield self.name
         yield self.fk_id_name
@@ -30,7 +33,7 @@ class RelationalField(ConcreteField):
         to declare the names/types for this field for its TypeScript Model class.
 
         """
-        yield self.base_cls_type_declaration
+        yield f"@foreignKeyField(() => {self.related_model_name}) " + self.base_cls_type_declaration
         yield self.fk_id_type_declaration
 
     @property

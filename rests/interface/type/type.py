@@ -3,7 +3,7 @@ import re
 import json
 
 from django.db import models
-from django.urls import path
+from django.urls import path, include
 from django.core.paginator import Paginator
 from rest_framework import serializers
 from rest_framework import status
@@ -17,6 +17,7 @@ from rests.interface.lookup_tree import LookupTree
 from rests.core.utils.subset_serializer import subset_serializer
 from rests.core.utils.model_inspector import ModelInspector
 from rests.interface.query import Query
+from rests.interface.type.method import Method
 
 
 # =================================
@@ -38,10 +39,20 @@ class Type(object):
 
     """
 
+    _SERIALIZER_CLS: typing.Type[serializers.ModelSerializer] = None
+    _LOOKUP_TREE: PermissionClasses = None
+    _CREATE_PERMISSIONS: PermissionClasses = None
+    _GET_PERMISSIONS: PermissionClasses = None
+    _DELETE_PERMISSIONS: PermissionClasses = None
+    _UPDATE_PERMISSIONS: PermissionClasses = None
+    _METHODS: typing.List[Method] = list()
+    _STATIC_METHODS: typing.List[Method] = list()
+
     def __init__(self, serializer_cls: typing.Type[serializers.ModelSerializer],
                  lookup_tree: LookupTree = None, create_permissions: PermissionClasses=None,
                  get_permissions: PermissionClasses=None, delete_permissions: PermissionClasses=None,
-                 update_permissions: PermissionClasses=None):
+                 update_permissions: PermissionClasses=None, methods: typing.List[Method] = None,
+                 static_methods: typing.List[Method] = None):
         """
 
 
@@ -71,10 +82,44 @@ class Type(object):
         self.get_permissions = get_permissions
         self.delete_permissions = delete_permissions
         self.update_permissions = update_permissions
+        self.methods = methods if methods is not None else []
+        self.static_methods = static_methods if static_methods is not None else []
 
         self._add_lookup_tree_defaults()
 
+    def __init_subclass__(cls, **kwargs):
+        serializer_cls = kwargs.get('serializer_cls')
+        lookup_tree = kwargs.get('lookup_tree')
+        create_permissions = kwargs.get('create_permissions')
+        get_permissions = kwargs.get('get_permissions')
+        delete_permissions = kwargs.get('delete_permissions')
+        update_permissions = kwargs.get('update_permissions')
+        cls._SERIALIZER_CLS = serializer_cls
+        cls._LOOKUP_TREE = lookup_tree
+        cls._CREATE_PERMISSIONS = create_permissions
+        cls._GET_PERMISSIONS = get_permissions
+        cls._DELETE_PERMISSIONS = delete_permissions
+        cls._UPDATE_PERMISSIONS = update_permissions
+
+    @classmethod
+    def as_type(cls):
+        type_ = cls(serializer_cls=cls._SERIALIZER_CLS, lookup_tree=cls._LOOKUP_TREE,
+                    create_permissions=cls._CREATE_PERMISSIONS, get_permissions=cls._GET_PERMISSIONS,
+                    delete_permissions=cls._DELETE_PERMISSIONS, update_permissions=cls._UPDATE_PERMISSIONS,
+                    methods=cls._METHODS, static_methods=cls._STATIC_METHODS)
+        type_._METHODS = cls._METHODS
+        return type_
+
     def _add_lookup_tree_defaults(self):
+        """
+        Look ups for first-order relations are always included, otherwise foreign key
+        fields would not work in TypeScript - no "lookup" key would be defined mapping
+        the "child" to the parent.
+
+        Returns
+        -------
+
+        """
         model_inspector = ModelInspector(model=self.model_cls)
         for field in model_inspector.relational_fields():
             self.lookup_tree += field.related_model
@@ -92,7 +137,60 @@ class Type(object):
             path('<pk>/delete/', self._delete_view(), name='delete'),
             path('create/', self._create_view(), name='create'),
         ]
+        if self.methods:
+            urlpatterns += self._method_urlpatterns
+        if self.static_methods:
+            urlpatterns += self._static_method_urlpatterns
         return urlpatterns
+
+    @property
+    def _method_urlpatterns(self):
+        method_patterns = []
+        for m in self.methods:
+            method_patterns.append(path(f'{m.url_name}/<pk>/', m.as_view(model_cls=self.model_cls), name=m.view_name))
+        urlpatterns = [path('methods/', include((method_patterns, 'methods')))]
+        return urlpatterns
+
+    @property
+    def _static_method_urlpatterns(self):
+        static_method_patterns = []
+        for m in self.static_methods:
+            static_method_patterns.append(path(f'{m.url_name}/', m.as_view(model_cls=self.model_cls), name=m.view_name))
+        urlpatterns = [path('static-methods/', include((static_method_patterns, 'static_methods')))]
+        return urlpatterns
+
+    @classmethod
+    def method(cls, permission_classes=None, literal_return_type: str = None):
+        """
+        Register Type `Method`...
+
+        """
+
+        def decorator(func):
+            method = Method(func=func,
+                            permission_classes=permission_classes,
+                            literal_return_type=literal_return_type)
+            cls._METHODS.append(method)
+            return method
+
+        return decorator
+
+    @classmethod
+    def static_method(cls, permission_classes=None, literal_return_type: str = None):
+        """
+        Register Type `Method`...
+
+        """
+
+        def decorator(func):
+            method = Method(func=func,
+                            permission_classes=permission_classes,
+                            literal_return_type=literal_return_type,
+                            is_static=True)
+            cls._STATIC_METHODS.append(method)
+            return method
+
+        return decorator
 
     def _get_view(self):
         """
@@ -163,7 +261,6 @@ class Type(object):
                 # Todo: find root cause of this.
                 query_json = query_json.replace(u'\ufeff', '')
                 query_data = json.loads(query_json)
-                print(query_data)
                 query = Query(**query_data)
                 queryset = query.apply_to_queryset(queryset=queryset)
 
@@ -178,9 +275,9 @@ class Type(object):
             if fields_json:
                 fields = json.loads(fields_json)
                 serializer_cls = subset_serializer(select_fields=fields, serializer_cls=self.serializer_cls)
-                serializer = serializer_cls(queryset, many=True)
+                serializer = serializer_cls(queryset, many=True, context={'request': request})
             else:
-                serializer = self._get_serializer(queryset, many=True)
+                serializer = self._get_serializer(queryset, many=True, context={'request': request})
 
             if page_num:
                 return Response({

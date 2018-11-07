@@ -8,7 +8,7 @@ from rest_framework import status
 
 
 from rests import interface
-from .models import ThingSerializer, ThingChildSerializer, Thing
+from .models import ThingSerializer, ThingChildSerializer, Thing, GenericModelSeriaizer, GenericModel
 
 
 # =================================
@@ -25,10 +25,22 @@ class GenericObject(interface.Object):
         return {'name': self.name}
 
 
+class GenericModelType(interface.Type, serializer_cls=GenericModelSeriaizer):
+
+    @interface.Type.method()
+    def example_method(self: GenericModel):
+        return {'name': self.name}
+
+    @interface.Type.method()
+    def example_method_args(self: GenericModel, append_to_name: str):
+        return {'name': self.name + append_to_name}
+
+
 class Interface(interface.Interface):
     things = interface.Type(serializer_cls=ThingSerializer)
     thing_children = interface.Type(serializer_cls=ThingChildSerializer)
     generic_object = GenericObject
+    generic_models = GenericModelType.as_type()
 
 
 urlpatterns = Interface.urlpatterns()
@@ -162,6 +174,21 @@ class TestInterfaceTypeViews(TestCase):
         self.assertEqual(response.data['num_pages'], 2)
 
         self.assertEqual(len(response.data['data']), 1)
+
+    def test_method(self):
+        generic_model = GenericModel.objects.create(name='abc')
+        view_url = reverse('generic_model:list')
+        view_url += f'methods/example-method/{generic_model.id}/'=
+        response = self.client.post(view_url)
+        self.assertEqual(response.data['name'], 'abc')
+
+    def test_method_args(self):
+        generic_model = GenericModel.objects.create(name='abc')
+        view_url = reverse('generic_model:list')
+        view_url += f'methods/example-method-args/{generic_model.id}/'
+        response = self.client.post(view_url, data={'append_to_name': '_x'}, format='json')
+        self.assertEqual(response.data['name'], 'abc_x')
+
 
 
 # =================================

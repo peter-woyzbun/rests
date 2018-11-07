@@ -25,9 +25,11 @@ class LookupTree(object):
 
     def __add__(self, other: Type[models.Model]):
         if isinstance(self.tree, list):
-            self.tree.append(other)
+            if other not in self.tree:
+                self.tree.append(other)
         if isinstance(self.tree, dict):
-            self.tree[other] = []
+            if other not in self.tree:
+                self.tree[other] = []
         return self
 
     def root_models(self) -> List[Type[models.Model]]:

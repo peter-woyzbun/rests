@@ -10,6 +10,9 @@ class Field(object):
     def names(self) -> Iterable[str]:
         raise NotImplementedError
 
+    def exposed_name(self):
+        raise NotImplementedError
+
     def interface_type_declarations(self) -> Iterable[str]:
         """
         Return the `interface` type declarations for this field. This will be used

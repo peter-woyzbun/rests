@@ -45,6 +45,10 @@ class ThingChildChildChild(TestModel):
     number = models.IntegerField(null=True)
 
 
+class GenericModel(TestModel):
+    name = models.CharField(null=True, max_length=200)
+
+
 # =================================
 # Serializers
 # ---------------------------------
@@ -62,3 +66,8 @@ class ThingChildSerializer(serializers.ModelSerializer):
         model = ThingChild
         fields = '__all__'
 
+
+class GenericModelSeriaizer(serializers.ModelSerializer):
+    class Meta:
+        model = GenericModel
+        fields = '__all__'

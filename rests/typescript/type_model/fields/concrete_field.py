@@ -26,6 +26,9 @@ class ConcreteField(Field):
     def name(self):
         return self.model_field.name
 
+    def exposed_name(self):
+        return self.name
+
     def names(self) -> Iterable[str]:
         yield self.name
 

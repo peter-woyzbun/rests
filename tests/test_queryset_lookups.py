@@ -3,7 +3,6 @@ from django.test import TestCase
 from rests.core.utils.model_inspector import ModelInspector
 from rests.typescript.queryset.lookups import QuerysetLookups
 from rests.typescript.queryset.queryset import Queryset
-from rests.typescript.model.model import Model
 
 from .models import Thing, ThingChild
 
@@ -23,7 +22,3 @@ class TestModelInspector(TestCase):
     def test_2(self):
         queryset = Queryset(model=Thing, model_pool=[ThingChild, Thing], type_url='abc')
         print(queryset.render())
-
-    def test_3(self):
-        model = Model(model=Thing, model_pool=[ThingChild, Thing], type_url='abc')
-        print(model.render())

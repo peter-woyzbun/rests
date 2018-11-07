@@ -7,8 +7,8 @@ from rest_framework import serializers
 
 from rests import interface
 from rests.core.utils.model_inspector import ModelInspector
-from rests.typescript.type_model.field import Field
 from rests.typescript.type_model.fields import ConcreteField, RelationalField, ReadOnlyField, ReverseRelatedField
+from rests.typescript.type_model.method import Method
 
 
 # =================================
@@ -58,13 +58,27 @@ class TypeModel(object):
             await this.save();
             return this;
             }
+            
+            public async partialUpdate(data: Partial<{{ model.interface_type_name }}>, responseHandlers: ResponseHandlers={}): Promise<{{ model.name }}>{
+                let responseData = await this.serverClient().post(`${this.baseUrl()}/${ this.pk() }/update/`, data, responseHandlers)
+                return new {{ model.name }}(responseData)
+            }
 
             {% for field in model._reverse_relation_fields %}
             public {{ field.name }}(lookups: {{ field.related_model_name }}Lookups = {}){
                 return new {{ field.related_model_name }}Queryset({...lookups, ...{ {{ field.reverse_lookup_key }}: this.pk()}})
             }
             {% endfor %}
-
+            
+            {% for method in model.methods %}
+            public async {{ method.name }}({{ method.arg_signature }}responseHandlers: ResponseHandlers={}){
+                const data = {{ method.arg_map }};
+                const result = await this.serverClient().post(`${ {{ model.name }}.BASE_URL}/methods/{{ method.type_method.url_name }}/${this.pk()}/`, data, responseHandlers);
+                return result
+            }
+            {% endfor %}
+            
+        
         }
 
         {{ model.queryset_cls_name }}.Model = {{ model.name }};
@@ -75,13 +89,17 @@ class TypeModel(object):
         self.interface_type = interface_type
         self.model_pool = model_pool
         self.model_inspector = ModelInspector(model=interface_type.model_cls)
-        self.fields: List[Field] = list()
+
         self._reverse_relation_fields: List[ReverseRelatedField] = list()
         self._relational_fields: List[RelationalField] = list()
         self._concrete_fields: List[ConcreteField] = list()
         self._readonly_fields: List[ReadOnlyField] = list()
 
+        self.methods: List[Method] = list()
+        self.static_methods: List[Method] = list()
+
         self._make_fields()
+        self._make_methods()
 
     def _make_fields(self):
         serializer_fields = self.interface_type.serializer_cls().get_fields()
@@ -114,6 +132,12 @@ class TypeModel(object):
                     ReverseRelatedField(model_field=model_field)
                 )
 
+    def _make_methods(self):
+        for interface_type_method in self.interface_type.methods + self.interface_type.static_methods:
+            if interface_type_method.is_static:
+                self.static_methods.append(Method(type_method=interface_type_method))
+            else:
+                self.methods.append(Method(type_method=interface_type_method))
 
     @property
     def declared_fields(self):

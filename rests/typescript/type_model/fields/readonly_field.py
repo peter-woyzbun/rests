@@ -33,6 +33,9 @@ class ReadOnlyField(Field):
     def names(self):
         yield self.name
 
+    def exposed_name(self):
+        return self.name
+
     @property
     def type_dec(self):
         return "readonly " + self.name + ": " + self._type
